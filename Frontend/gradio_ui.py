@@ -13,21 +13,18 @@ def filter_and_format_judgments(search_term, date_filter):
     try:
         data = fetch_judgments_from_api()
         
-        # Apply search term filter
         if search_term:
             data = [
                 j for j in data
                 if search_term.lower() in (j['case_title'] or '').lower()
             ]
         
-        # Apply date filter
         if date_filter:
             data = [
                 j for j in data
                 if date_filter in (j['date'] or '')
             ]
 
-        # Build HTML table
         table_html = """
         <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width:100%;">
             <thead>
