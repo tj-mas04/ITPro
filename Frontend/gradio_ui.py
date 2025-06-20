@@ -4,7 +4,6 @@ import requests
 API_URL = "http://127.0.0.1:8000/judgments"
 
 def fetch_judgments_from_api():
-    """Get judgments data from the FastAPI server."""
     response = requests.get(API_URL)
     response.raise_for_status()
     return response.json()
@@ -58,7 +57,6 @@ with gr.Blocks(title="Supreme Court Judgments Dashboard") as demo:
     gr.Markdown("# ⚖️ Supreme Court Judgments Dashboard")
     gr.Markdown("Fetch and explore recent Supreme Court judgments.")
 
-    # CSS to style and ensure min height for spinner visibility
     gr.Markdown("""
     <style>
     #judgment-container {
@@ -82,11 +80,16 @@ with gr.Blocks(title="Supreme Court Judgments Dashboard") as demo:
     with gr.Row():
         search_box = gr.Textbox(label="Search Case Title", placeholder="Type part of the case title...")
         date_box = gr.Textbox(label="Filter by Date", placeholder="Example: 10 June 2025")
-        refresh_btn = gr.Button("Fetch Judgments")
+        refresh_btn = gr.Button("Search Judgments")
 
     judgment_html = gr.HTML(value="<p style='text-align:center;'>No judgments loaded yet.</p>", elem_id="judgment-container")
 
-    # Button triggers fetch + display
+    demo.load(
+        fn=filter_and_format_judgments,
+        inputs=[search_box, date_box],
+        outputs=judgment_html
+    )
+
     refresh_btn.click(
         fn=filter_and_format_judgments,
         inputs=[search_box, date_box],
