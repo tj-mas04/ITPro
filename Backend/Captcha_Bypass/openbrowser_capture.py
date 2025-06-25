@@ -29,7 +29,7 @@ except:
 
 # Step 4: Take region screenshot using mss
 # Adjust the values (top, left) based on DevTools measurement
-monitor = {"top": 700, "left": 600, "width": 120, "height": 40}
+monitor = {"top": 784, "left": 662, "width": 140, "height": 40}
 
 with mss.mss() as sct:
     sct_img = sct.grab(monitor)

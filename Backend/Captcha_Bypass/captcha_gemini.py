@@ -7,7 +7,7 @@ genai.configure(api_key=GOOGLE_API_KEY)
 
 model = genai.GenerativeModel('gemini-1.5-flash')
 
-image_path = r"C:\Users\ASUS\Documents\ITProfound\dev\Backend\securimage_show 2.png"
+image_path = r"C:\Users\ASUS\Documents\ITProfound\dev\Backend\region_capture.png"
 image = Image.open(image_path)
 
 response = model.generate_content(
