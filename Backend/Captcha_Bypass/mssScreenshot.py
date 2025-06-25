@@ -2,7 +2,7 @@ import mss
 
 with mss.mss() as sct:
     # Define monitor region: left, top, width, height
-    monitor = {"top": 100, "left": 100, "width": 300, "height": 200}
+    monitor = {"top": 900, "left": 600, "width": 120, "height": 40}
     sct_img = sct.grab(monitor)
 
     # Save the image
