@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -6,6 +8,15 @@ import mss
 from mss import tools
 from PIL import Image, ImageEnhance, ImageFilter
 import google.generativeai as genai
+
+load_dotenv()
+
+api_key = os.getenv("GOOGLE_API_KEY")
+if not api_key:
+    raise ValueError("API key not found. Please check your .env file.")
+
+genai.configure(api_key=api_key)
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 
 chrome_options = Options()
@@ -18,17 +29,12 @@ time.sleep(5)
 try:
     captcha = driver.find_element(By.ID, "captcha_image")
     print("CAPTCHA image found.")
-except:
-    print("CAPTCHA image not found.")
+except Exception as e:
+    print(f"CAPTCHA image not found: {e}")
     driver.quit()
     exit()
 
 # ========== GEMINI OCR & CAPTCHA SOLVE LOOP ==========
-
-GOOGLE_API_KEY = "GOOGLE_API_KEY"
-genai.configure(api_key=GOOGLE_API_KEY)
-model = genai.GenerativeModel("gemini-1.5-flash")
-
 max_attempts = 10
 solved = False
 
@@ -49,7 +55,7 @@ for attempt in range(max_attempts):
     enhancer = ImageEnhance.Contrast(image)
     image = enhancer.enhance(2)
 
-    response = model.generate_content([image, "This image is a CAPTCHA. Please read and extract the alphanumeric text clearly."])
+    response = model.generate_content([image, "This image is a CAPTCHA. Read and extract the alphanumeric text clearly."])
     captcha_text = response.text.strip()
     print(f"Attempt {attempt + 1}: Extracted CAPTCHA text: {captcha_text}")
 

@@ -9,19 +9,9 @@ from selenium.webdriver.chrome.options import Options
 import time
 import google.generativeai as genai
 
-GOOGLE_API_KEY = "AIzaSyCUcjaE6qjusGsSEGRY5aFK24kdg5D_z-A"  
+GOOGLE_API_KEY = "GOOGLE_API_KEY"  
 
 def solve_captcha_with_gemini(image_url, api_key):
-    """Solves a CAPTCHA image using Gemini.
-
-    Args:
-        image_url: The URL of the CAPTCHA image.
-        api_key: Your Google Gemini API key.
-
-    Returns:
-        The solved CAPTCHA text, or None if it couldn't be solved.
-    """
-
     try:
         response = requests.get(image_url, stream=True, verify=False)
         response.raise_for_status()  
