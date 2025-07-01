@@ -9,7 +9,6 @@ import mss
 from mss import tools
 import google.generativeai as genai
 
-# ========== 1. ENVIRONMENT & GEMINI SETUP ==========
 
 load_dotenv()
 api_key = os.getenv("GOOGLE_API_KEY")
@@ -19,7 +18,6 @@ if not api_key:
 genai.configure(api_key=api_key)
 model = genai.GenerativeModel("gemini-1.5-flash")
 
-# ========== 2. SELENIUM SETUP ==========
 
 def init_driver():
     chrome_options = Options()
@@ -38,7 +36,6 @@ except Exception as e:
     driver.quit()
     exit()
 
-# ========== 3. CAPTCHA SOLVING LOGIC ==========
 
 def capture_captcha_screenshot(path, region):
     with mss.mss() as sct:
@@ -53,6 +50,9 @@ def preprocess_image(path):
     image = enhancer.enhance(2)
     return image
 
+#RUN WITH GROQ AND EVALUATE GROG AND GEMINI
+#FAIL AND SECCESS RATES
+
 def solve_captcha_with_gemini(image):
     prompt = "This image is a CAPTCHA. Read and extract the alphanumeric text clearly."
     response = model.generate_content([image, prompt])
@@ -63,8 +63,6 @@ def enter_captcha_text(driver, text):
     input_field.clear()
     input_field.send_keys(text)
     driver.find_element(By.ID, "main_search").click()
-
-# ========== 4. CAPTCHA LOOP ==========
 
 max_attempts = 10
 captcha_image_path = r"C:\Users\ASUS\Documents\ITProfound\dev\Backend\region_capture.png"
@@ -84,7 +82,7 @@ for attempt in range(1, max_attempts + 1):
         time.sleep(3)
 
         try:
-            driver.find_element(By.ID, "captcha_image")  # CAPTCHA still present
+            driver.find_element(By.ID, "captcha_image")
             print("CAPTCHA not solved.")
 
             try:
@@ -95,7 +93,7 @@ for attempt in range(1, max_attempts + 1):
             except Exception as e:
                 print(f"Close button not found or already closed: {e}")
 
-        except:  # CAPTCHA image not found — assumed solved
+        except:
             print("CAPTCHA solved!")
             solved = True
             break
