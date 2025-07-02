@@ -10,7 +10,6 @@ from mss import tools
 from dotenv import load_dotenv
 from groq import Groq
 
-# ===== 1. Load Environment Variables =====
 load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
@@ -19,7 +18,6 @@ if not GROQ_API_KEY:
 
 client = Groq(api_key=GROQ_API_KEY)
 
-# ===== 2. Init WebDriver =====
 def init_driver():
     chrome_options = Options()
     chrome_options.add_argument("--start-maximized")
@@ -37,7 +35,6 @@ except Exception as e:
     driver.quit()
     exit()
 
-# ===== 3. Screenshot and Preprocess =====
 def capture_captcha_screenshot(path, region):
     with mss.mss() as sct:
         sct_img = sct.grab(region)
@@ -49,14 +46,13 @@ def preprocess_image(path):
     image = image.filter(ImageFilter.MedianFilter())
     enhancer = ImageEnhance.Contrast(image)
     image = enhancer.enhance(2)
-    image.save(path)  # Save preprocessed image for Groq
+    image.save(path)  # Save preprocessed image
     return path
 
 def encode_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode("utf-8")
 
-# ===== 4. Solve CAPTCHA with Groq LLaMA-4 =====
 def solve_captcha_with_llama(image_path):
     base64_image = encode_image(image_path)
     response = client.chat.completions.create(
@@ -84,7 +80,6 @@ def enter_captcha_text(driver, text):
     input_field.send_keys(text)
     driver.find_element(By.ID, "main_search").click()
 
-# ===== 5. Main CAPTCHA Solving Loop =====
 max_attempts = 10
 captcha_image_path = r"C:\Users\ASUS\Documents\ITProfound\dev\Backend\region_capture.png"
 screenshot_region = {"top": 784, "left": 662, "width": 140, "height": 40}
@@ -122,6 +117,10 @@ for attempt in range(1, max_attempts + 1):
     except Exception as e:
         print(f"Failed to enter CAPTCHA: {e}")
         break
+    
+    if attempt != max_attempts and not solved:
+        print("Retrying in 2 minutes...")
+        time.sleep(120)
 
 if not solved:
     print("❌ Failed to solve CAPTCHA after multiple attempts.")
@@ -130,4 +129,5 @@ if not solved:
 
 # ===== 6. Continue After CAPTCHA =====
 print("✅ Proceeding with search results...")
-# driver.quit()
+input("Press Enter to exit and close the browser...")
+driver.quit()
