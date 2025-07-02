@@ -3,6 +3,7 @@ import base64
 from dotenv import load_dotenv
 import google.generativeai as genai
 from groq import Groq
+from PIL import Image
 
 load_dotenv()
 
@@ -11,12 +12,14 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 gemini_model = genai.GenerativeModel("gemini-1.5-flash")
 
 def solve_with_gemini(image_path):
-    with open(image_path, "rb") as img_file:
-        img_bytes = img_file.read()
-    prompt = "This image is a CAPTCHA. Read and extract the alphanumeric text clearly. Output only the code as a string."
-    response = gemini_model.generate_content([img_bytes, prompt])
-    return response.text.strip()
+    # Load image using PIL
+    image = Image.open(image_path)
 
+    prompt = "This image is a CAPTCHA. Read and extract the alphanumeric text clearly. Output only the code as a string."
+    
+    # Gemini expects [image, prompt] as input
+    response = gemini_model.generate_content([image, prompt])
+    return response.text.strip()
 
 # ==== Setup LLaMA ====
 llama_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
