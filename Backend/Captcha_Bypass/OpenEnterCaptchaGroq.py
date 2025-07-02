@@ -1,24 +1,25 @@
 import os
 import time
+import base64
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from PIL import Image, ImageEnhance, ImageFilter
 import mss
 from mss import tools
-import google.generativeai as genai
 from dotenv import load_dotenv
+from groq import Groq
 
+# ===== 1. Load Environment Variables =====
 load_dotenv()
 
-api_key = os.getenv("GOOGLE_API_KEY")
-if not api_key:
-    raise ValueError("API key not found. Please check your .env file.")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+if not GROQ_API_KEY:
+    raise ValueError("GROQ API key not found. Please check your .env file.")
 
-genai.configure(api_key=api_key)
-model = genai.GenerativeModel("gemini-1.5-flash")
+client = Groq(api_key=GROQ_API_KEY)
 
-
+# ===== 2. Init WebDriver =====
 def init_driver():
     chrome_options = Options()
     chrome_options.add_argument("--start-maximized")
@@ -36,7 +37,7 @@ except Exception as e:
     driver.quit()
     exit()
 
-
+# ===== 3. Screenshot and Preprocess =====
 def capture_captcha_screenshot(path, region):
     with mss.mss() as sct:
         sct_img = sct.grab(region)
@@ -48,13 +49,34 @@ def preprocess_image(path):
     image = image.filter(ImageFilter.MedianFilter())
     enhancer = ImageEnhance.Contrast(image)
     image = enhancer.enhance(2)
-    return image
+    image.save(path)  # Save preprocessed image for Groq
+    return path
 
+def encode_image(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode("utf-8")
 
-def solve_captcha_with_gemini(image):
-    prompt = "This image is a CAPTCHA. Read and extract the alphanumeric text clearly."
-    response = model.generate_content([image, prompt])
-    return response.text.strip()
+# ===== 4. Solve CAPTCHA with Groq LLaMA-4 =====
+def solve_captcha_with_llama(image_path):
+    base64_image = encode_image(image_path)
+    response = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "Read and extract the alphanumeric text clearly. Consider it as a single string without spaces. Just return the text without any additional information."},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_image}",
+                        },
+                    },
+                ],
+            }
+        ],
+        model="meta-llama/llama-4-scout-17b-16e-instruct",
+    )
+    return response.choices[0].message.content.strip()
 
 def enter_captcha_text(driver, text):
     input_field = driver.find_element(By.ID, "captcha")
@@ -62,6 +84,7 @@ def enter_captcha_text(driver, text):
     input_field.send_keys(text)
     driver.find_element(By.ID, "main_search").click()
 
+# ===== 5. Main CAPTCHA Solving Loop =====
 max_attempts = 10
 captcha_image_path = r"C:\Users\ASUS\Documents\ITProfound\dev\Backend\region_capture.png"
 screenshot_region = {"top": 784, "left": 662, "width": 140, "height": 40}
@@ -71,8 +94,8 @@ for attempt in range(1, max_attempts + 1):
     print(f"\nAttempt {attempt} to solve CAPTCHA...")
 
     capture_captcha_screenshot(captcha_image_path, screenshot_region)
-    image = preprocess_image(captcha_image_path)
-    captcha_text = solve_captcha_with_gemini(image)
+    processed_image_path = preprocess_image(captcha_image_path)
+    captcha_text = solve_captcha_with_llama(processed_image_path)
     print(f"Extracted CAPTCHA text: {captcha_text}")
 
     try:
@@ -105,7 +128,6 @@ if not solved:
     driver.quit()
     exit()
 
-# ========== 5. CONTINUE POST CAPTCHA ==========
-
+# ===== 6. Continue After CAPTCHA =====
 print("✅ Proceeding with search results...")
 # driver.quit()
