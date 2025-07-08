@@ -3,8 +3,8 @@ import json
 from PyPDF2 import PdfReader
 
 # Define input and output folders
-pdf_folder = r"Backend\pdfs"
-output_folder = r"Backend\pdfs\Extracted"
+pdf_folder = r"Backend\Judgments_PDF's"
+output_folder = r"Backend\Judgments_PDF's\Extracted"
 
 # Create output folder if it doesn't exist
 os.makedirs(output_folder, exist_ok=True)
