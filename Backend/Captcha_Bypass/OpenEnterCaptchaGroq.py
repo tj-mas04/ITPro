@@ -89,7 +89,7 @@ for attempt in range(1, max_attempts + 1):
     print(f"\nAttempt {attempt} to solve CAPTCHA...")
 
     capture_captcha_screenshot(captcha_image_path, screenshot_region)
-    processed_image_path = preprocess_image(captcha_image_path)
+    processed_image_path = preprocess_image(captcha_image_path) 
     captcha_text = solve_captcha_with_llama(processed_image_path)
     print(f"Extracted CAPTCHA text: {captcha_text}")
 
@@ -120,14 +120,14 @@ for attempt in range(1, max_attempts + 1):
     
     if attempt != max_attempts and not solved:
         print("Retrying in 2 minutes...")
-        time.sleep(120)
+        # time.sleep(120)
+        time.sleep(6) # Time reduced for testing purposes
 
 if not solved:
     print("❌ Failed to solve CAPTCHA after multiple attempts.")
     driver.quit()
     exit()
 
-# ===== 6. Continue After CAPTCHA =====
 print("✅ Proceeding with search results...")
 input("Press Enter to exit and close the browser...")
 driver.quit()
